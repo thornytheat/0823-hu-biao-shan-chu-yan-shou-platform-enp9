@@ -23,7 +23,7 @@ def execute(store, data):
     report = run(data)
     report['manifest'] = dict(sha256=fingerprint, version=RULE_VERSION, created=now(),
                               duration_ms=round((monotonic()-start)*1000,3), bytes=len(data), run_id=run_id)
-    return store.register(run_id,report)
+    return store.register(run_id,report,data)
 
 
 def review(store, run_id, values):
@@ -37,6 +37,21 @@ def review(store, run_id, values):
         raise DomainIssue('STALE_REVIEW')
     if current['status'] == 'APPROVED':
         raise DomainIssue('RUN_FINALIZED')
-    if status == 'APPROVED' and not current['report']['balance']['releasable']:
+    releasable = current['report'].get('balance',{}).get('releasable')
+    current_release = current['report'].get('current_balance') or {}
+    if current_release.get('releasable') is True:
+        releasable = True
+    if status == 'APPROVED' and not releasable:
         raise DomainIssue('UNRESOLVED_ISSUES')
     return store.revise(run_id,revision,status,note.strip(),now())
+
+
+def supplement(store, *args, **kwargs):
+    """Lazy facade to avoid a module import cycle."""
+    from app.supplement.service import apply_supplement
+    return apply_supplement(store, *args, **kwargs)
+
+
+def resume_supplement(store, *args, **kwargs):
+    from app.supplement.service import resume_supplement as resume
+    return resume(store, *args, **kwargs)

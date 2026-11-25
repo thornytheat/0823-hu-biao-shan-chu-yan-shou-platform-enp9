@@ -34,6 +34,26 @@
 {% endmacro %}
 {% macro archive() %}
 <aside class="panel archive" id="review-area"><h2>批次复核</h2><ul id="history"></ul>
+  <div id="version-switch" class="version-switch" data-original-snapshot data-current-result hidden aria-label="快照版本回看">
+    <div class="version-buttons">
+      <button type="button" id="view-original-snapshot" data-view="original" data-version-view="original" data-testid="original-snapshot">回看原快照</button>
+      <button type="button" id="view-current-result" data-view="current" data-version-view="current" data-testid="current-result">补录后当前结果</button>
+      <button type="button" id="verify-original-snapshot" data-verify-original>复验原快照</button>
+    </div>
+    <p id="version-summary" aria-live="polite">
+      <span data-original-visible-count>原快照可见：—</span>
+      ·
+      <span data-current-visible-count>当前可见：—</span>
+    </p>
+    <p id="supplement-marks" data-marked-records role="status"></p>
+  </div>
+  <form id="supplement-form" data-supplement-form hidden aria-label="补录剔除记录">
+    <p class="form-title">补录剔除（不改写原批次）</p>
+    <label for="supplement-key">补录幂等键<input id="supplement-key" name="idempotency_key" maxlength="160" placeholder="同一笔补录重试保持不变"></label>
+    <label for="supplement-file" class="file">补录 CSV</label>
+    <input id="supplement-file" name="file" type="file" accept=".csv,text/csv">
+    <button type="submit" class="action">提交补录并恢复处理</button>
+  </form>
   <form id="review" hidden>
     <p id="run-status"></p><label for="note">复核意见</label>
     <textarea id="note" name="note" minlength="3" maxlength="200" required></textarea>

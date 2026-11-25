@@ -101,7 +101,19 @@ export function snapshot(report, selected, stage) {
   table.createTHead().append(head);
   const picked = report.cases?.find(row=>row.case===selected);
   document.querySelector('#detail-title').textContent = picked ? `分组 ${picked.case}` : '采信摘要';
-  const shown = picked ? picked.measure?.evidence ?? picked.prep?.details ?? {原因:picked.status} : stats.reasons;
+  let shown;
+  if (picked) {
+    shown = {};
+    if (picked.marked_records?.length) {
+      shown['待复核原记录'] = picked.marked_records;
+      shown['标记说明'] = '位置剔除指向缺失文件或偏移，当前版本暂缓签发';
+    }
+    const evidence = picked.measure?.evidence ?? picked.prep?.details ?? {原因:picked.status};
+    Object.assign(shown, evidence);
+    if (picked.current_status) shown['当前版本状态'] = picked.current_status;
+  } else {
+    shown = stats.reasons;
+  }
   document.querySelector('#detail').replaceChildren(detailValue(shown));
   document.querySelector('#counts').textContent = report.balance ? `行数 ${report.balance.accounted}/${report.balance.input} · ${report.balance.ready} 组通过` : `采信 ${stats.accepted} 行 · 隔离 ${stats.rejected} 行`;
 }
